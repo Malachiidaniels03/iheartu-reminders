@@ -1,0 +1,32 @@
+# Every 5 minutes, asks the I ♡ U server to send any event reminders that are due.
+# The server (iheartu-push.vercel.app/api/remind) does all the work; this is only the clock.
+# GitHub pauses timers on repos that see no activity for 60 days, so once a month it also
+# writes the date into keepalive.txt.
+name: Event reminders
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+    - cron: '17 9 1 * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Send due reminders
+        run: curl -fsS -m 90 --retry 2 -H "x-cron-key: ${{ secrets.CRON_KEY }}" https://iheartu-push.vercel.app/api/remind
+  keepalive:
+    if: github.event.schedule == '17 9 1 * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Monthly sign of life
+        run: |
+          date -u +%Y-%m-%d > keepalive.txt
+          git config user.name "iheartu-timer"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add keepalive.txt
+          git commit -m "Monthly keepalive" && git push
