@@ -16,7 +16,8 @@ jobs:
     timeout-minutes: 3
     steps:
       - name: Send due reminders
-        run: curl -fsS -m 90 --retry 2 -H "x-cron-key: ${{ secrets.CRON_KEY }}" https://iheartu-push.vercel.app/api/remind
+        run: |
+          curl -fsS -m 90 --retry 2 -H "x-cron-key: ${{ secrets.CRON_KEY }}" https://iheartu-push.vercel.app/api/remind
   keepalive:
     if: github.event.schedule == '17 9 1 * *'
     runs-on: ubuntu-latest
